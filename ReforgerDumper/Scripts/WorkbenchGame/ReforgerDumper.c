@@ -168,7 +168,6 @@ class ReforgerDumperPluginSettings: ResourceManagerPlugin
 			}
 		}
 		
-
 		WriteFile(resName, localPath);
 	}
 	
@@ -178,31 +177,32 @@ class ReforgerDumperPluginSettings: ResourceManagerPlugin
 		// This path will be along the lines of $core:system/materials/PBRDiffuseProbe.ema
 		string inputPath = resName.GetPath();
 		
+		// FIXED: Use !inputFile instead of == 0 (API change)
 		FileHandle inputFile = FileIO.OpenFile(inputPath, FileMode.READ);
-		if (inputFile == 0)
+		if (!inputFile)
 		{
 			Print("The file at the path could not be read: " + inputPath);
 			return;
 		}
 
-		// Our output path will start with $profile:Dump/
+		// FIXED: Use !outputFile instead of == 0 (API change)
 		FileHandle outputFile = FileIO.OpenFile(outputPath, FileMode.WRITE);		
-		if (outputFile == 0)
+		if (!outputFile)
 		{
 			Print("The file at the path could not be created: " + outputPath);
-			inputFile.CloseFile();
+			inputFile.Close(); // FIXED: CloseFile() -> Close()
 			return;
 		}
 		
 		string line;
-		// If this was > 0 it would exit the loop on an empty line even if the file wasn't done
-		while (inputFile.FGets(line) >= 0)
+		// FIXED: FGets() -> ReadLine() | FPrintln() -> WriteLine() | CloseFile() -> Close()
+		while (inputFile.ReadLine(line) >= 0)
 		{
-			outputFile.FPrintln(line);
+			outputFile.WriteLine(line);
 		}
 
-		inputFile.CloseFile();
-		outputFile.CloseFile();
+		inputFile.Close();
+		outputFile.Close();
 	}
 	
 	// Ugly way to insert the enabled extensions into the array
